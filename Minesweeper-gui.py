@@ -135,8 +135,39 @@ class Visible():
             self.flags = self.flags - x
 
 class Game():
-    def __init__(self) -> None:
-        pass
+    def __init__(self, rows, columns, n_bombs) -> None:
+        self.rows = rows
+        self.columns = columns
+        self.n_bombs = n_bombs
+
+        self.board_data = Board_data(rows, columns, n_bombs)
+        self.visible = Visible(rows, columns, n_bombs)
+    
+    def dig(self, row, col):
+
+        # Initialize a stack for iterative approach
+        stack = [(row, col)]
+        
+        while stack:
+            current_row, current_col = stack.pop()
+            self.visible.dug.add((current_row, current_col))  # keep track that we dug here
+            
+            if self.board_data.board[current_row][current_col] == '*':
+                # Hit a bomb, game over
+                return False
+            elif self.board_data.board[current_row][current_col] > 0:
+                # Hit a cell with neighboring bombs, continue
+                continue
+            
+            # self.board[current_row][current_col] == 0
+            for r in range(max(0, current_row-1), min(self.board_data.dim_size-1, current_row+1)+1):
+                for c in range(max(0, current_col-1), min(self.board_data.dim_size-1, current_col+1)+1):
+                    if (r, c) in self.visible.dug:
+                        continue  # skip cells already dug
+                    stack.append((r, c))
+
+        # If our initial dig didn't hit a bomb, we *shouldn't* hit a bomb here
+        return True
 
 
 board = Board_data(10,10,10)
