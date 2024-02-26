@@ -16,6 +16,82 @@ import random
 import re
 import pygame
 
+"""
+classi:
+    Board_data
+        dimensione righe
+        domensione colonne
+        numero di bombe
+        array bidimensionale
+        funzione per mettere i numeri
+        bombe set()
+    
+    Visible
+        dimensione righe
+        domensione colonne
+        numero di bombe
+        numero di mosse
+        scavate set()
+        visible_board
+        flags set()
+        funz bombe rimanenti
+    
+    Game
+        Board
+        Visible
+        won
+        dig
+    
+    
+"""
+
+class Board_data():
+    def __init__(self,rows,columns,n_bombs) -> None:
+        self.rows = rows
+        self.columns = columns
+        self.n_bombs = n_bombs
+
+        self.bombs = set()
+        self.board = []
+
+        self.init_board()
+
+    def init_board(self):
+
+        all_position = {(r,c) for c in range(self.columns) for r in range(self.rows)}
+
+        while len(self.bombs)<self.n_bombs:
+            self.bombs.add(random.choice(tuple(all_position - self.bombs)))
+
+        self.board = [['*' if (r,c) in self.bombs else None for c in range(self.columns)] for r in range(self.rows)]
+
+        self.assign_values_to_board()
+    
+    def assign_values_to_board(self):
+        for r in range(self.rows):
+            for c in range(self.columns):
+                if self.board[r][c] == '*':
+                    self.bombs.add((r,c))
+                else:
+                    self.board[r][c] = self.get_num_neighboring_bombs(r, c)
+
+    def get_num_neighboring_bombs(self, row, col):
+        # make sure to not go out of bounds!
+
+        num_neighboring_bombs = 0
+        for r in range(max(0, row-1), min(self.rows-1, row+1)+1):
+            for c in range(max(0, col-1), min(self.columns-1, col+1)+1):
+                if self.board[r][c] == '*':
+                    num_neighboring_bombs += 1
+
+        return num_neighboring_bombs
+
+
+
+
+
+"""
+
 # lets create a board object to represent the minesweeper game
 # this is so that we can just say "create a new board object", or
 # "dig here", or "render this game for this object"
@@ -406,7 +482,6 @@ def intorno(board,row,col,number):
 
 
 def posizione_a_indici(posizione, dimensione):
-    """Calcola gli indici del quadrato corrispondente alla posizione del mouse"""
     x, y = posizione
     riga = y // dimensione
     colonna = x // dimensione
@@ -414,7 +489,6 @@ def posizione_a_indici(posizione, dimensione):
 
 
 def disegna_griglia_con_numeri(schermo, griglia, dimensione_quadrato):
-    """Disegna la griglia con i numeri/caratteri corrispondenti"""
     for riga in range(len(griglia)):
         for colonna in range(len(griglia[0])):
             x = colonna * dimensione_quadrato
@@ -556,4 +630,7 @@ if __name__ == '__main__': # good practice :)
     bot_play()
 
     ##gui_play(game)
-    
+
+
+
+    """
