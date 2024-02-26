@@ -85,8 +85,62 @@ class Board_data():
                     num_neighboring_bombs += 1
 
         return num_neighboring_bombs
+    
+    def __str__(self) -> str:
+        string = ""
+        for r in self.board:
+            for c in r:
+                string += str(c)
+                string += " "
+            string += "\n"
+        return string
 
 
+
+"""Visible
+        dimensione righe
+        domensione colonne
+        numero di bombe
+        numero di mosse
+        scavate set()
+        visible_board
+        flags set()
+        funz bombe rimanenti"""
+
+class Visible():
+    def __init__(self,rows,columns,n_bombs) -> None:
+        self.rows = rows
+        self.columns = columns
+        self.n_bombs = n_bombs
+
+        self.n_moves = 0
+        self.dug = set()
+        self.flags = set()
+        self.visible_board = []
+    
+    @property
+    def remaining_bombs(self) -> int:
+        return self.n_bombs - len(self.flags)
+    
+    def flag(self, x) -> None:
+        if type(x) == tuple:
+            self.flags.add(x)
+        if type(x) == set:
+            self.flags = self.flags | x
+    
+    def unflag(self, x) -> None:
+        if type(x) == tuple:
+            self.flags.discard(x)
+        if type(x) == set:
+            self.flags = self.flags - x
+
+class Game():
+    def __init__(self) -> None:
+        pass
+
+
+board = Board_data(10,10,10)
+print (board)
 
 
 
