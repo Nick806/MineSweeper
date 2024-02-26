@@ -380,7 +380,7 @@ def posizione_a_indici(posizione, dimensione):
     return riga, colonna
 
 
-def disegna_griglia_con_numeri(schermo, griglia):
+def disegna_griglia_con_numeri(schermo, griglia, dimensione_quadrato):
     """Disegna la griglia con i numeri/caratteri corrispondenti"""
     for riga in range(len(griglia)):
         for colonna in range(len(griglia[0])):
@@ -395,20 +395,17 @@ def disegna_griglia_con_numeri(schermo, griglia):
             testo_rettangolo = testo.get_rect(center=(x + dimensione_quadrato // 2, y + dimensione_quadrato // 2))
             schermo.blit(testo, testo_rettangolo)
 
-if __name__ == '__main__': # good practice :)
 
-    dim = 5
-    bomb = 2
-    game = Game.new(dim,bomb)
+def gui_play(game):
     pygame.init()
 
     # Dimensioni della finestra di gioco
-    larghezza = 800
-    altezza = 800
+    global larghezza
+    global altezza
 
     # Colori
-    nero = (0, 0, 0)
-    bianco = (255, 255, 255)
+    global bianco
+    global nero
 
     # Numero di quadrati per riga e per colonna
     numero_quadrati = dim
@@ -449,10 +446,85 @@ if __name__ == '__main__': # good practice :)
         finestra.fill(bianco)
 
         # Disegna la griglia di quadrati
-        disegna_griglia_con_numeri(finestra, game.game_data())
+        disegna_griglia_con_numeri(finestra, game.game_data(),dimensione_quadrato)
 
         # Aggiornamento della finestra
         pygame.display.update()
 
     # Uscita dal programma
     pygame.quit()
+
+def gui_bot(game):
+    pygame.init()
+
+    # Dimensioni della finestra di gioco
+    global larghezza
+    global altezza
+
+    # Colori
+    global bianco
+    global nero
+
+    # Numero di quadrati per riga e per colonna
+    numero_quadrati = dim
+    dimensione_quadrato = larghezza // numero_quadrati
+
+    # Creazione della finestra
+    finestra = pygame.display.set_mode((larghezza, altezza))
+    pygame.display.set_caption("MineSweeper")
+
+    # Loop del gioco
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                posizione_mouse = pygame.mouse.get_pos()
+                x, y = posizione_a_indici(posizione_mouse, dimensione_quadrato)
+
+                # Rileva il tasto del mouse premuto
+                if event.button == 1:  # Tasto sinistro del mouse
+                    print("Tasto sinistro del mouse premuto a posizione:", posizione_mouse)
+                    print(posizione_a_indici(posizione_mouse, dimensione_quadrato))
+                    safe = game.dig(x, y)
+                    if safe == False:
+                        running = False
+                        print("You lost!")
+                    elif game.won():
+                        running = False
+                        print("You won!")
+                elif event.button == 3:  # Tasto destro del mouse
+                    print("Tasto destro del mouse premuto a posizione:", posizione_mouse)
+                    game.flag(x, y)
+
+
+
+        # Pulisci la finestra
+        finestra.fill(bianco)
+
+        # Disegna la griglia di quadrati
+        disegna_griglia_con_numeri(finestra, game.game_data(),dimensione_quadrato)
+
+        # Aggiornamento della finestra
+        pygame.display.update()
+
+    # Uscita dal programma
+    pygame.quit()
+
+
+larghezza = 1000
+altezza = 1000
+dim = 10
+bomb = 10
+
+nero = (0, 0, 0)
+bianco = (255, 255, 255)
+
+
+if __name__ == '__main__': # good practice :)
+
+    game = Game.new(dim,bomb)
+
+    gui_play(game)
+    
