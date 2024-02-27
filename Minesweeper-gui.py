@@ -116,7 +116,7 @@ class Visible():
         self.n_moves = 0
         self.dug = set()
         self.flags = set()
-        self.visible_board = []
+        self.board = []
     
     @property
     def remaining_bombs(self) -> int:
@@ -167,11 +167,72 @@ class Game():
                     stack.append((r, c))
 
         # If our initial dig didn't hit a bomb, we *shouldn't* hit a bomb here
+
+        self.update_visible()
         return True
 
+    def update_visible(self):
+        self.visible.dug
+        self.visible.board = []
+    
 
-board = Board_data(10,10,10)
-print (board)
+def posizione_a_indici(posizione, dimensione):
+    """Calcola gli indici del quadrato corrispondente alla posizione del mouse"""
+    x, y = posizione
+    riga = y // dimensione
+    colonna = x // dimensione
+    return riga, colonna
+
+
+def disegna_griglia_con_numeri(griglia, dimensione_quadrato):
+    """Disegna la griglia con i numeri/caratteri corrispondenti"""
+    global window
+    for riga in range(len(griglia)):
+        for colonna in range(len(griglia[0])):
+            x = colonna * dimensione_quadrato
+            y = riga * dimensione_quadrato
+            rettangolo = pygame.Rect(x, y, dimensione_quadrato, dimensione_quadrato)
+            pygame.draw.rect(window, colors['black'], rettangolo, 1)  # disegna il bordo del rettangolo
+
+            # Aggiungi il numero/carattere al centro del quadrato
+            font = pygame.font.Font(None, 36)  # Imposta il font e la dimensione del testo
+            testo = font.render(str(griglia[riga][colonna] if griglia[riga][colonna] != None else " "), True, nero)  # Crea il testo
+            testo_rettangolo = testo.get_rect(center=(x + dimensione_quadrato // 2, y + dimensione_quadrato // 2))
+            window.blit(testo, testo_rettangolo)
+
+
+colors = {
+    'black'  : (  0,   0,   0),
+    'blue'   : (  0,   0, 255),
+    'green'  : (  0, 128,   0),
+    'lime'   : (  0, 255,   0),
+    'maroon' : (128,   0,   0),
+    'navy'   : (  0,   0, 128),
+    'olive'  : (128, 128,   0),
+    'purple' : (128,   0, 128),
+    'red'    : (255,   0,   0),
+    'teal'   : (  0, 128, 128),
+    'white'  : (255, 255, 255),
+    'yellow' : (255, 255,   0),
+}
+
+window_data = {'width' :800,
+          'height':800}
+
+
+if __name__ == '__main__':
+    pygame.init()
+
+    window = pygame.display.set_mode((window_data['width'], window_data['height']))
+    pygame.display.set_caption("MineSweeper")
+
+    game = Game(10,10,10)
+
+    disegna_griglia_con_numeri(game.visible.board, dimensione_quadrato)
+
+
+
+
 
 
 
