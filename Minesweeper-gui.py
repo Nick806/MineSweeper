@@ -173,7 +173,7 @@ class Game():
 
     def update_visible(self):
         self.visible.dug
-        self.visible.board = []
+        self.visible.board = [[self.board_data.board[r][c] if (r,c) in self.visible.dug else if (r,c) in self.visible.flags else " " for c in range(self.columns)] for r in range(self.rows)]
     
 
 def posizione_a_indici(posizione, dimensione):
@@ -184,20 +184,26 @@ def posizione_a_indici(posizione, dimensione):
     return riga, colonna
 
 
-def disegna_griglia_con_numeri(griglia, dimensione_quadrato):
+def disegna_griglia_con_numeri(griglia):
     """Disegna la griglia con i numeri/caratteri corrispondenti"""
     global window
-    for riga in range(len(griglia)):
-        for colonna in range(len(griglia[0])):
-            x = colonna * dimensione_quadrato
-            y = riga * dimensione_quadrato
-            rettangolo = pygame.Rect(x, y, dimensione_quadrato, dimensione_quadrato)
+    rows = len(griglia)
+    columns = len(griglia[0])
+
+    cell_width = window_data['columns'] / columns
+    cell_height = window_data['height'] / rows
+
+    for riga in range(rows):
+        for colonna in range(columns):
+            x = colonna * cell_width
+            y = riga * cell_height
+            rettangolo = pygame.Rect(x, y, cell_width,cell_height)
             pygame.draw.rect(window, colors['black'], rettangolo, 1)  # disegna il bordo del rettangolo
 
             # Aggiungi il numero/carattere al centro del quadrato
             font = pygame.font.Font(None, 36)  # Imposta il font e la dimensione del testo
-            testo = font.render(str(griglia[riga][colonna] if griglia[riga][colonna] != None else " "), True, nero)  # Crea il testo
-            testo_rettangolo = testo.get_rect(center=(x + dimensione_quadrato // 2, y + dimensione_quadrato // 2))
+            testo = font.render(str(griglia[riga][colonna] if griglia[riga][colonna] != None else " "), True, colors['black'])  # Crea il testo
+            testo_rettangolo = testo.get_rect(center=(x + cell_width // 2, y + cell_height // 2))
             window.blit(testo, testo_rettangolo)
 
 
@@ -219,6 +225,12 @@ colors = {
 window_data = {'width' :800,
           'height':800}
 
+game_data = {'rows' : 10,
+             'columns': 10,
+             'bombs': 10}
+
+
+
 
 if __name__ == '__main__':
     pygame.init()
@@ -228,7 +240,12 @@ if __name__ == '__main__':
 
     game = Game(10,10,10)
 
-    disegna_griglia_con_numeri(game.visible.board, dimensione_quadrato)
+    window.fill(colors['white'])
+    disegna_griglia_con_numeri(game.visible.board)
+
+    pygame.display.update()
+
+    input("FINE...")
 
 
 
