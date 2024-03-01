@@ -142,6 +142,11 @@ class Game():
 
         self.board_data = Board_data(rows, columns, n_bombs)
         self.visible = Visible(rows, columns, n_bombs)
+        self.update_visible()
+    
+    @property
+    def won(self):
+        return len(self.visible.dug) == self.rows*self.columns - self.board_data.n_bombs
     
     def dig(self, row, col):
 
@@ -160,8 +165,8 @@ class Game():
                 continue
             
             # self.board[current_row][current_col] == 0
-            for r in range(max(0, current_row-1), min(self.board_data.dim_size-1, current_row+1)+1):
-                for c in range(max(0, current_col-1), min(self.board_data.dim_size-1, current_col+1)+1):
+            for r in range(max(0, current_row-1), min(self.rows-1, current_row+1)+1):
+                for c in range(max(0, current_col-1), min(self.columns-1, current_col+1)+1):
                     if (r, c) in self.visible.dug:
                         continue  # skip cells already dug
                     stack.append((r, c))
@@ -173,15 +178,17 @@ class Game():
 
     def update_visible(self):
         self.visible.dug
-        self.visible.board = [[self.board_data.board[r][c] if (r,c) in self.visible.dug else if (r,c) in self.visible.flags else " " for c in range(self.columns)] for r in range(self.rows)]
+        self.visible.board = [[self.board_data.board[r][c] if (r,c) in self.visible.dug else "*" if (r,c) in self.visible.flags  else " " for c in range(self.columns)] for r in range(self.rows)]
     
 
-def posizione_a_indici(posizione, dimensione):
+def posizione_a_indici(posizione):
     """Calcola gli indici del quadrato corrispondente alla posizione del mouse"""
+    global window_data
+
     x, y = posizione
-    riga = y // dimensione
-    colonna = x // dimensione
-    return riga, colonna
+    riga = y // (window_data['height']/game_data['rows'])
+    colonna = x // (window_data['width']/game_data['columns'])
+    return int(riga), int(colonna)
 
 
 def disegna_griglia_con_numeri(griglia):
@@ -190,15 +197,21 @@ def disegna_griglia_con_numeri(griglia):
     rows = len(griglia)
     columns = len(griglia[0])
 
-    cell_width = window_data['columns'] / columns
+    cell_width = window_data['width'] / columns
     cell_height = window_data['height'] / rows
 
     for riga in range(rows):
         for colonna in range(columns):
             x = colonna * cell_width
             y = riga * cell_height
-            rettangolo = pygame.Rect(x, y, cell_width,cell_height)
-            pygame.draw.rect(window, colors['black'], rettangolo, 1)  # disegna il bordo del rettangolo
+            rettangolo_bordo = pygame.Rect(x, y, cell_width,cell_height)
+            rettangolo_riempimento = pygame.Rect(x+2, y+2, cell_width,cell_height-2)
+            #pygame.draw.rect(window, colors['black'], rettangolo, 1)  # disegna il bordo del rettangolo
+            # Disegna il bordo del rettangolo
+            pygame.draw.rect(window, colors['black'], rettangolo_bordo)
+
+            # Riempimento del rettangolo con un colore diverso (es. verde)
+            pygame.draw.rect(window, number_colors[griglia[riga][colonna]], rettangolo_riempimento)
 
             # Aggiungi il numero/carattere al centro del quadrato
             font = pygame.font.Font(None, 36)  # Imposta il font e la dimensione del testo
@@ -222,6 +235,26 @@ colors = {
     'yellow' : (255, 255,   0),
 }
 
+number_colors = {
+    " "  : (255, 255, 255),  # Cella Vuota: Bianco
+    1    : (0, 0, 255),      # Numero 1: Blu
+    2    : (0, 128, 0),      # Numero 2: Verde Scuro
+    3    : (0, 255, 0),      # Numero 3: Verde Chiaro
+    4    : (128, 0, 0),      # Numero 4: Rosso Scuro
+    5    : (0, 0, 128),      # Numero 5: Blu Scuro
+    6    : (128, 128, 0),    # Numero 6: Giallo Scuro
+    7    : (128, 0, 128),    # Numero 7: Viola Scuro
+    8    : (255, 0, 0),      # Numero 8: Rosso Chiaro
+    0    : (192, 192, 192),  # Cella Vuota (Nessun vicino): Grigio
+    "*"  : (255, 0, 0)       # Bomba: Rosso Chiaro
+
+}
+
+symbols = {
+    'mine'  : "*",
+    'flag'  : "F",
+}
+
 window_data = {'width' :800,
           'height':800}
 
@@ -240,12 +273,59 @@ if __name__ == '__main__':
 
     game = Game(10,10,10)
 
-    window.fill(colors['white'])
-    disegna_griglia_con_numeri(game.visible.board)
+    running = True
 
-    pygame.display.update()
+    while running:
 
-    input("FINE...")
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                posizione_mouse = pygame.mouse.get_pos()
+                x, y = posizione_a_indici(posizione_mouse)
+
+                # Rileva il tasto del mouse premuto
+                if event.button == 1:  # Tasto sinistro del mouse
+                    print("Tasto sinistro del mouse premuto a posizione:", posizione_mouse)
+                    print(posizione_a_indici(posizione_mouse))
+                    safe = game.dig(x, y)
+                    if safe == False:
+                        running = False
+                        print("You lost!")
+                    elif game.won:
+                        running = False
+                        print("You won!")
+                elif event.button == 3:  # Tasto destro del mouse
+                    print("Tasto destro del mouse premuto a posizione:", posizione_mouse)
+                    game.visible.flag((x, y))
+                    game.update_visible()
+
+            # Rileva l'evento di premere un tasto
+            elif event.type == pygame.KEYDOWN:
+                posizione_mouse = pygame.mouse.get_pos()
+                x, y = posizione_a_indici(posizione_mouse)
+                # Se il tasto premuto è la freccia sinistra, cambia il colore del rettangolo
+                if event.key == pygame.K_d or event.key == pygame.K_c:
+                    print("Tasto sinistro del mouse premuto a posizione:", posizione_mouse)
+                    print(posizione_a_indici(posizione_mouse))
+                    safe = game.dig(x, y)
+                    if safe == False:
+                        running = False
+                        print("You lost!")
+                    elif game.won:
+                        running = False
+                        print("You won!")
+                if event.key == pygame.K_f or event.key == pygame.K_x:
+                    print("Tasto destro del mouse premuto a posizione:", posizione_mouse)
+                    game.visible.flag((x, y))
+                    game.update_visible()
+
+        window.fill(colors['white'])
+        disegna_griglia_con_numeri(game.visible.board)
+
+        pygame.display.update()
+
+    pygame.quit()
 
 
 
