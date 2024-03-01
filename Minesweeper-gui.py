@@ -327,8 +327,24 @@ if __name__ == '__main__':
 
     pygame.quit()
 
+def Bot(visible):
+    def get_intorno(x, y):
+        s = set()
+        for a in range(max(0,x-1), min(x+2,visible.rows)):
+            for b in range(max(0,y-1), min(y+2,visible.columns)):
+                s.add((a,b))
+        return s
 
+    def conta_intorno_vuote(x, y):
+        for cor in get_intorno(x, y):
+            if 
 
+    def flag_all_obvious():
+        for r in range(visible.rows):
+            for c in range(visible.columns):
+                if visible.board[r][c] == "*" or visible.board[r][c] == " ":
+                    continue
+                assert (type(visible.board[r][c]) == int, "Cosa sea sta roba?")
 
 
 
