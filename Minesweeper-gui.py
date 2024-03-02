@@ -220,6 +220,53 @@ def disegna_griglia_con_numeri(griglia):
             window.blit(testo, testo_rettangolo)
 
 
+def Bot(visible):
+    def get_intorno(t):
+        x = t[0]
+        y = t[1]
+        s = set()
+        for a in range(max(0,x-1), min(x+2,visible.rows)):
+            for b in range(max(0,y-1), min(y+2,visible.columns)):
+                s.add((a,b))
+        return s
+    
+    def get_intorno_vuote(t):
+        return get_intorno(t)-visible.dug
+
+    def conta_intorno_vuote(t):
+        return len(get_intorno_vuote(t))
+
+    def get_intorno_bombe(t):
+        return get_intorno(t) & visible.flags
+
+    def conta_intorno_bombe(t):
+        return len(get_intorno_bombe(t))
+
+    def flag_all_obvious():
+        for cor in visible.dug:
+            assert (type(visible.board[cor[0]][cor[1]]) == int, "Cosa sea sta roba?")
+            if visible.board[cor[0]][cor[1]] == 0:
+                continue
+            if visible.board[cor[0]][cor[1]] == conta_intorno_vuote(cor):
+                visible.flag(get_intorno_vuote(cor))
+
+    d = tuple()
+    def dig_all_obvious():
+        for cor in visible.dug:
+            assert (type(visible.board[cor[0]][cor[1]]) == int, "Cosa sea sta roba?")
+            if visible.board[cor[0]][cor[1]] == 0:
+                continue
+            if visible.board[cor[0]][cor[1]] == conta_intorno_bombe(cor):
+                d = random.choice(list(get_intorno_vuote(cor)))
+                break
+    
+    
+    
+    flag_all_obvious()
+    #dig_all_obvious()
+    #game.dig(d[0], d[1])
+
+
 colors = {
     'black'  : (  0,   0,   0),
     'blue'   : (  0,   0, 255),
@@ -297,7 +344,10 @@ if __name__ == '__main__':
                         print("You won!")
                 elif event.button == 3:  # Tasto destro del mouse
                     print("Tasto destro del mouse premuto a posizione:", posizione_mouse)
-                    game.visible.flag((x, y))
+                    if (x,y) in game.visible.flags:
+                        game.visible.unflag((x,y))
+                    else:
+                        game.visible.flag((x, y))
                     game.update_visible()
 
             # Rileva l'evento di premere un tasto
@@ -317,7 +367,13 @@ if __name__ == '__main__':
                         print("You won!")
                 if event.key == pygame.K_f or event.key == pygame.K_x:
                     print("Tasto destro del mouse premuto a posizione:", posizione_mouse)
-                    game.visible.flag((x, y))
+                    if (x,y) in game.visible.flags:
+                        game.visible.unflag((x,y))
+                    else:
+                        game.visible.flag((x, y))
+                    game.update_visible()
+                if event.key == pygame.K_b:
+                    Bot(game.visible)
                     game.update_visible()
 
         window.fill(colors['white'])
@@ -326,26 +382,6 @@ if __name__ == '__main__':
         pygame.display.update()
 
     pygame.quit()
-
-def Bot(visible):
-    def get_intorno(x, y):
-        s = set()
-        for a in range(max(0,x-1), min(x+2,visible.rows)):
-            for b in range(max(0,y-1), min(y+2,visible.columns)):
-                s.add((a,b))
-        return s
-
-    def conta_intorno_vuote(x, y):
-        for cor in get_intorno(x, y):
-            if 
-
-    def flag_all_obvious():
-        for r in range(visible.rows):
-            for c in range(visible.columns):
-                if visible.board[r][c] == "*" or visible.board[r][c] == " ":
-                    continue
-                assert (type(visible.board[r][c]) == int, "Cosa sea sta roba?")
-
 
 
 
